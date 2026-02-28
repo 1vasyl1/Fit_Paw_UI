@@ -1,5 +1,5 @@
 import {CheckCircle, Clock} from "lucide-react";
-import {type TrainingCell} from "@/components/SchedulComponents/DescriptionLesson.tsx";
+import {type TrainingCell} from "@/components/scheduleComponents/DescriptionLesson.tsx";
 
 
 interface Row {

@@ -1,5 +1,5 @@
-import { useEffect } from "react";
-import { X, Clock, CheckCircle } from "lucide-react";
+import {useEffect} from "react";
+import {CheckCircle, Clock, X} from "lucide-react";
 
 export type TrainingCell = {
     name: string;
