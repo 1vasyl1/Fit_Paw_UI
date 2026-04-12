@@ -2,6 +2,7 @@ import {useState} from "react";
 import {useForm} from "react-hook-form";
 import {Eye, EyeOff, Lock, User, UserPlus} from "lucide-react";
 import {Link, useNavigate} from "react-router-dom";
+import {signUpApi} from "@/api/authApi/authService.ts";
 
 type SignUpPayload = {
     username: string;
@@ -10,45 +11,45 @@ type SignUpPayload = {
     last_name: string;
     email: string;
 };
-
-// --- MOCK REDUXA (RTK Query) ---
-// POST /auth/signup/
-const useSignUpMutation = () => {
-    const [isLoading, setIsLoading] = useState(false);
-
-    const signUp = async (payload: SignUpPayload) => {
-        setIsLoading(true);
-
-        return new Promise<SignUpPayload & { id: number }>((resolve, reject) => {
-            setTimeout(() => {
-                setIsLoading(false);
-
-                if (payload.username === "admin") {
-                    reject({
-                        error: {
-                            message: "User with this username already exists",
-                        },
-                    });
-                } else {
-                    resolve({
-                        id: 1,
-                        ...payload,
-                    });
-                }
-            }, 1000);
-        });
-    };
-
-    return [signUp, {isLoading}] as const;
-};
+//
+// // --- MOCK REDUXA (RTK Query) ---
+// // POST /auth/signup/
+// const useSignUpMutation = () => {
+//     const [isLoading, setIsLoading] = useState(false);
+//
+//     const signUp = async (payload: SignUpPayload) => {
+//         setIsLoading(true);
+//
+//         return new Promise<SignUpPayload & { id: number }>((resolve, reject) => {
+//             setTimeout(() => {
+//                 setIsLoading(false);
+//
+//                 if (payload.username === "admin") {
+//                     reject({
+//                         error: {
+//                             message: "User with this username already exists",
+//                         },
+//                     });
+//                 } else {
+//                     resolve({
+//                         id: 1,
+//                         ...payload,
+//                     });
+//                 }
+//             }, 1000);
+//         });
+//     };
+//
+//     return [signUp, {isLoading}] as const;
+// };
 
 // -------------------------------------------------------
 
-export function SignUp() {
+export function SignPageUp() {
     const navigate = useNavigate();
     const [showPassword, setShowPassword] = useState(false);
     const [serverError, setServerError] = useState<string | null>(null);
-    const [signUp, {isLoading}] = useSignUpMutation();
+    const [isLoading, setIsLoading] = useState(false);
     const {
         register,
         handleSubmit,
@@ -58,12 +59,17 @@ export function SignUp() {
 
     const onSubmit = async (formData: SignUpPayload) => {
         setServerError(null);
+        setIsLoading(true);
         try {
             console.log("Sign Up", formData);
-            await signUp(formData);
+            await signUpApi(formData);
+            console.log("Sign Up success");
             navigate("/login");
         } catch (err: any) {
-            setServerError(err?.error?.message || "Register failed");
+            console.log(err);
+            setServerError(err.message || "Register failed");
+        } finally {
+            setIsLoading(false);
         }
     };
 

@@ -1,5 +1,5 @@
 import {Link, NavLink} from "react-router-dom";
-import {useAuth} from "@/api/UseAuth.ts";
+import {useAuth} from "@/api/helpers/UseAuth.ts";
 
 const baseLink =
     "px-3 py-2 rounded-md text-sm font-medium transition-colors";

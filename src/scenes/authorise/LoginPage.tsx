@@ -2,49 +2,51 @@ import {useState} from "react";
 import {useForm} from "react-hook-form";
 import {Eye, EyeOff, Lock, LogIn, User} from "lucide-react";
 import {Link, useNavigate} from "react-router-dom";
-import {useAuth} from "@/api/UseAuth.ts";
+import {useAuth} from "@/api/helpers/UseAuth.ts";
+import {loginApi} from "@/api/authApi/authService.ts";
 
-// --- MOCK REDUXA ---
-//  POST /auth/login/
-type LoginResponse = {
-    token: string;
-}
 
-const useLoginMutation = () => {
-    const [isLoading, setIsLoading] = useState(false);
-
-    const login = async (credentials: any) => {
-        setIsLoading(true);
-
-        return new Promise<LoginResponse>((resolve, reject) => {
-            setTimeout(() => {
-                setIsLoading(false);
-
-                if (credentials.username === "admin" && credentials.password === "admin") {
-                    resolve({
-                        token: "fake-jwt-token"
-                    });
-                } else {
-                    reject({
-                        error: {
-                            message: "Invalid credentials"
-                        }
-                    });
-                }
-            }, 1000);
-        });
-    };
-    return [login, {isLoading}] as const;
-};
-
-// ----------------------------------------
+// // --- MOCK REDUXA ---
+// //  POST /auth/authorise/
+// type LoginResponse = {
+//     token: string;
+// }
+//
+// const useLoginMutation = () => {
+//     const [isLoading, setIsLoading] = useState(false);
+//
+//     const authorise = async (credentials: any) => {
+//         setIsLoading(true);
+//
+//         return new Promise<LoginResponse>((resolve, reject) => {
+//             setTimeout(() => {
+//                 setIsLoading(false);
+//
+//                 if (credentials.username === "admin" && credentials.password === "admin") {
+//                     resolve({
+//                         token: "fake-jwt-token"
+//                     });
+//                 } else {
+//                     reject({
+//                         error: {
+//                             message: "Invalid credentials"
+//                         }
+//                     });
+//                 }
+//             }, 1000);
+//         });
+//     };
+//     return [authorise, {isLoading}] as const;
+// };
+//
+// // ----------------------------------------
 
 export function LoginPage() {
     const navigate = useNavigate();
     const [showPassword, setShowPassword] = useState(false);
     const {loginUser} = useAuth();
-    const [login, {isLoading}] = useLoginMutation();
     const [serverError, setServerError] = useState<string | null>(null);
+    const [isLoading, setIsLoading] = useState<boolean>(false);
 
     const {
         register,
@@ -54,18 +56,22 @@ export function LoginPage() {
 
     const onSubmit = async (formData: any) => {
         setServerError(null);
+        setIsLoading(true);
+
         try {
-            const response = await login({
+            const response = await loginApi({
                 username: formData.username,
                 password: formData.password
             });
-            loginUser(response.token);
+            loginUser(response.access);
             console.log("Login success");
 
             navigate("/schedule");
         } catch (err: any) {
             console.error(err);
-            setServerError("Invalid username or password");
+            setServerError(err.message || "Invalid username or password");
+        } finally {
+            setIsLoading(false);
         }
     };
     return (
