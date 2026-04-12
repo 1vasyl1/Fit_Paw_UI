@@ -1,10 +1,10 @@
 import {Calendar, CheckCircle, Clock} from "lucide-react";
 import {useState} from "react";
-import {TimeRange} from "@/components/SchedulComponents/TimeRange.tsx";
-import {DailyView} from "@/components/SchedulComponents/ScheduleDayView.tsx";
-import {FilterLessons} from "@/components/SchedulComponents/FilterLessons.tsx";
+import {TimeRange} from "@/components/scheduleComponents/TimeRange.tsx";
+import {DailyView} from "@/components/scheduleComponents/ScheduleDayView.tsx";
+import {FilterLessons} from "@/components/scheduleComponents/FilterLessons.tsx";
 import {useScheduleFilter} from "@/components/hooks/useFilterlessons.ts";
-import {type TrainingCell, TrainingModal} from "@/components/SchedulComponents/DescriptionLesson.tsx";
+import {type TrainingCell, TrainingModal} from "@/components/scheduleComponents/DescriptionLesson.tsx";
 
 
 const scheduleData = [

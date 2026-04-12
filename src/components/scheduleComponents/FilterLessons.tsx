@@ -1,4 +1,4 @@
-import { Filter } from "lucide-react";
+import {Filter} from "lucide-react";
 import {
     Select,
     SelectContent,
