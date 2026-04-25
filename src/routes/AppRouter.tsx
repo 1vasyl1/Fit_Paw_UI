@@ -5,6 +5,7 @@ import {AboutPage} from "../scenes/about/AboutPage.tsx";
 import {SchedulePage} from "../scenes/schedule/SchedulePage.tsx";
 import {LoginPage} from "@/scenes/authorise/LoginPage.tsx";
 import {SignPageUp} from "@/scenes/authorise/SignPageUp.tsx";
+import {UserProfilePage} from "@/scenes/user/UserPage.tsx";
 
 export const router = createBrowserRouter(
     createRoutesFromElements(
@@ -15,6 +16,7 @@ export const router = createBrowserRouter(
             <Route path="/about" element={<AboutPage />} />
             <Route path="/login" element={<LoginPage/>}/>
             <Route path="/signup" element={<SignPageUp/>}/>
+            <Route path="/profile" element={<UserProfilePage/>}/>
         </Route>
     )
 );
