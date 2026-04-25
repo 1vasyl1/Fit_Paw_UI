@@ -48,6 +48,21 @@ const Navbar = () => {
                     >
                         Schedule
                     </NavLink>
+                    {isAuthenticated && (
+                        <NavLink
+                            to="/profile"
+                            className={({isActive}) =>
+                                `${baseLink} ${
+                                    isActive
+                                        ? "bg-sky-600 text-white"
+                                        : "text-slate-700 hover:bg-sky-50"
+                                }`
+                            }
+                        >
+                            Profile
+                        </NavLink>
+                    )}
+
 
                     <NavLink
                         to="/about"
