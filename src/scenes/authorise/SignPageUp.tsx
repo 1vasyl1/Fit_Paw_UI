@@ -3,6 +3,7 @@ import {useForm} from "react-hook-form";
 import {Eye, EyeOff, Lock, User, UserPlus} from "lucide-react";
 import {Link, useNavigate} from "react-router-dom";
 import {signUpApi} from "@/api/authApi/authService.ts";
+import {toApiRequestError} from "@/lib/apiErrors.ts";
 
 type SignUpPayload = {
     username: string;
@@ -61,13 +62,11 @@ export function SignPageUp() {
         setServerError(null);
         setIsLoading(true);
         try {
-            console.log("Sign Up", formData);
             await signUpApi(formData);
-            console.log("Sign Up success");
             navigate("/login");
-        } catch (err: any) {
-            console.log(err);
-            setServerError(err.message || "Register failed");
+        } catch (error: unknown) {
+            const apiError = toApiRequestError(error, "Register failed");
+            setServerError(apiError.message);
         } finally {
             setIsLoading(false);
         }
@@ -75,7 +74,7 @@ export function SignPageUp() {
 
     return (
         <div
-            className="h-[calc(90vh-64px)] w-full flex items-center justify-center bg-gradient-to-br from-slate-50 to-gray-100 p-4">
+            className="flex min-h-0 w-full flex-1 items-center justify-center bg-gradient-to-br from-slate-50 to-gray-100 p-4">
             <div className="w-full max-w-md bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
                 {/* Header */}
                 <div className="bg-gradient-to-r from-sky-50 to-blue-50 px-8 py-8 text-center border-b border-gray-100">

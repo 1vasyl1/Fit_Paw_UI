@@ -1,7 +1,9 @@
 import {useEffect, useState} from "react";
 import {useForm} from "react-hook-form";
 import {Mail, QrCode, User} from "lucide-react";
-import {getCurrentUser, updateCurrentUser} from "@/api/authApi/userService.ts";
+import {getCurrentUser, updateCurrentUser} from "@/api/userApi/userService.ts";
+import {getCurrentMembership, type Membership,} from "@/api/membershipApi/membershipService.ts";
+import {toApiRequestError} from "@/lib/apiErrors.ts";
 
 type UserProfile = {
     id?: string;
@@ -10,6 +12,27 @@ type UserProfile = {
     first_name: string;
     last_name: string;
 };
+
+type ApiUserProfileShape = {
+    id?: string | null;
+    username?: string | null;
+    email?: string | null;
+    first_name?: string | null;
+    last_name?: string | null;
+};
+
+function normalizeUserProfile(
+    profile: ApiUserProfileShape,
+    fallback?: UserProfile
+): UserProfile {
+    return {
+        id: profile.id ?? fallback?.id ?? "1",
+        username: profile.username ?? fallback?.username ?? "-",
+        email: profile.email ?? fallback?.email ?? "",
+        first_name: profile.first_name ?? fallback?.first_name ?? "",
+        last_name: profile.last_name ?? fallback?.last_name ?? "",
+    };
+}
 
 export function UserProfilePage() {
 
@@ -25,6 +48,8 @@ export function UserProfilePage() {
     const [saveSuccess, setSaveSuccess] = useState(false);
     const [serverError, setServerError] = useState<string | null>(null);
     const [isLoadingProfile, setIsLoadingProfile] = useState(true);
+    const [membership, setMembership] = useState<Membership | null>(null);
+    const [membershipError, setMembershipError] = useState<string | null>(null);
 
     const {
         register,
@@ -38,62 +63,76 @@ export function UserProfilePage() {
     useEffect(() => {
         const fetchUser = async () => {
             setServerError(null);
+            setMembershipError(null);
             setIsLoadingProfile(true);
 
-            try {
-                const currentUser = await getCurrentUser();
+            const [profileResult, membershipResult] = await Promise.allSettled([
+                getCurrentUser(),
+                getCurrentMembership(),
+            ]);
 
-                const mappedUser: UserProfile = {
-                    id: currentUser.id,
-                    username: currentUser.username,
-                    email: currentUser.email,
-                    first_name: currentUser.first_name,
-                    last_name: currentUser.last_name,
-                };
+            if (profileResult.status === "fulfilled") {
+                const currentUser = profileResult.value;
+                const mappedUser = normalizeUserProfile(currentUser);
 
                 setUserData(mappedUser);
                 reset(mappedUser);
-            } catch (err: any) {
-                console.error(err);
-                setServerError(err.message || "Failed to load profile.");
-            } finally {
-                setIsLoadingProfile(false);
+            } else {
+                const apiError = toApiRequestError(
+                    profileResult.reason,
+                    "Failed to load profile."
+                );
+                setServerError(apiError.message);
             }
+
+            if (membershipResult.status === "fulfilled") {
+                setMembership(membershipResult.value);
+            } else {
+                const apiError = toApiRequestError(
+                    membershipResult.reason,
+                    "Failed to load membership."
+                );
+                setMembership(null);
+                setMembershipError(apiError.message);
+            }
+
+            setIsLoadingProfile(false);
         };
 
-        fetchUser();
+        void fetchUser();
     }, [reset]);
 
 
     const onSubmit = async (formData: UserProfile) => {
-        console.log(" Submitting formData:", formData);
         setServerError(null);
         setSaveSuccess(false);
         setIsSaving(true);
 
         try {
-            const updatedUser = await updateCurrentUser({
+            await updateCurrentUser({
                 email: formData.email,
                 first_name: formData.first_name,
                 last_name: formData.last_name,
             });
-
-            const mappedUser: UserProfile = {
-                id: updatedUser.id,
-                username: updatedUser.username,
-                email: updatedUser.email,
-                first_name: updatedUser.first_name,
-                last_name: updatedUser.last_name,
-            };
+            const refreshedUser = await getCurrentUser();
+            const mappedUser = normalizeUserProfile(refreshedUser, {
+                ...userData,
+                email: formData.email,
+                first_name: formData.first_name,
+                last_name: formData.last_name,
+            });
 
             setUserData(mappedUser);
             reset(mappedUser);
             setSaveSuccess(true);
 
             setTimeout(() => setSaveSuccess(false), 3000);
-        } catch (err: any) {
-            console.error(err);
-            setServerError(err.message || "Failed to update profile.");
+        } catch (error: unknown) {
+            const apiError = toApiRequestError(
+                error,
+                "Failed to update profile."
+            );
+            setServerError(apiError.message);
         } finally {
             setIsSaving(false);
         }
@@ -121,6 +160,25 @@ export function UserProfilePage() {
                                 <div className="text-center">
                                     <p className="text-sm font-medium text-gray-500 mb-1">Username</p>
                                     <p className="text-lg font-bold text-gray-900">{userData.username}</p>
+                                    {membership && (
+                                        <div className="mt-3 text-xs text-gray-500">
+                                            <span
+                                                className="inline-block font-semibold px-3 py-1 rounded-full bg-sky-100 text-sky-700 capitalize">
+                                                {membership.plan ?? "No plan"} member
+                                            </span>
+                                            <p className="mt-2">
+                                                Status:{" "}
+                                                <span className="font-semibold capitalize">
+                                                    {membership.status.replace("_", " ")}
+                                                </span>
+                                            </p>
+                                        </div>
+                                    )}
+                                    {membershipError && (
+                                        <p className="mt-3 text-xs text-red-500">
+                                            {membershipError}
+                                        </p>
+                                    )}
                                 </div>
                             </div>
 
