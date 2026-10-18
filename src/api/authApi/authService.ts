@@ -1,4 +1,5 @@
 import {api} from "@/lib/api.ts";
+import {toApiRequestError} from "@/lib/apiErrors.ts";
 
 export type LoginPayload = {
     username: string;
@@ -22,17 +23,15 @@ export async function loginApi(payload: LoginPayload): Promise<LoginResponse> {
     try {
         const response = await api.post<LoginResponse>("/auth/login/", payload);
         return response.data;
-    } catch (error: any) {
-        const msg = error.response?.data?.detail || error.response?.data?.error || "Login failed";
-        throw new Error(msg);
+    } catch (error: unknown) {
+        throw toApiRequestError(error, "Login failed");
     }
 }
 
 export async function signUpApi(payload: SignUpPayload): Promise<void> {
     try {
         await api.post("/auth/signup/", payload);
-    } catch (error: any) {
-        const msg = error.response?.data?.detail || error.response?.data?.error || "Sign up failed";
-        throw new Error(msg);
+    } catch (error: unknown) {
+        throw toApiRequestError(error, "Sign up failed");
     }
 }

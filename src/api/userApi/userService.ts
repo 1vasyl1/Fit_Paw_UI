@@ -1,4 +1,5 @@
 import {api} from "@/lib/api.ts";
+import {toApiRequestError} from "@/lib/apiErrors.ts";
 
 export type UserProfile = {
     id: string;
@@ -22,12 +23,8 @@ export async function getCurrentUser(): Promise<UserProfile> {
     try {
         const response = await api.get<UserProfile>("/auth/users/me/");
         return response.data;
-    } catch (error: any) {
-        const msg =
-            error.response?.data?.detail ||
-            error.response?.data?.error ||
-            "Failed to fetch user profile";
-        throw new Error(msg);
+    } catch (error: unknown) {
+        throw toApiRequestError(error, "Failed to fetch user profile");
     }
 }
 
@@ -40,11 +37,7 @@ export async function updateCurrentUser(
     try {
         const response = await api.patch<UserProfile>("/auth/users/me/", payload);
         return response.data;
-    } catch (error: any) {
-        const msg =
-            error.response?.data?.detail ||
-            error.response?.data?.error ||
-            "Failed to update user profile";
-        throw new Error(msg);
+    } catch (error: unknown) {
+        throw toApiRequestError(error, "Failed to update user profile");
     }
 }

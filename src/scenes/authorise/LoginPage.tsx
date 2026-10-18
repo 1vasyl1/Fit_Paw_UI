@@ -4,7 +4,12 @@ import {Eye, EyeOff, Lock, LogIn, User} from "lucide-react";
 import {Link, useNavigate} from "react-router-dom";
 import {useAuth} from "@/api/helpers/UseAuth.ts";
 import {loginApi} from "@/api/authApi/authService.ts";
+import {toApiRequestError} from "@/lib/apiErrors.ts";
 
+type LoginFormValues = {
+    username: string;
+    password: string;
+};
 
 // // --- MOCK REDUXA ---
 // //  POST /auth/authorise/
@@ -52,9 +57,9 @@ export function LoginPage() {
         register,
         handleSubmit,
         formState: {errors},
-    } = useForm();
+    } = useForm<LoginFormValues>();
 
-    const onSubmit = async (formData: any) => {
+    const onSubmit = async (formData: LoginFormValues) => {
         setServerError(null);
         setIsLoading(true);
 
@@ -64,19 +69,21 @@ export function LoginPage() {
                 password: formData.password
             });
             loginUser(response.access);
-            console.log("Login success");
 
             navigate("/schedule");
-        } catch (err: any) {
-            console.error(err);
-            setServerError(err.message || "Invalid username or password");
+        } catch (error: unknown) {
+            const apiError = toApiRequestError(
+                error,
+                "Invalid username or password"
+            );
+            setServerError(apiError.message);
         } finally {
             setIsLoading(false);
         }
     };
     return (
         <div
-            className="h-[calc(90vh-64px)] w-full flex items-center justify-center bg-gradient-to-br from-slate-50 to-gray-100 p-4">
+            className="flex min-h-0 w-full flex-1 items-center justify-center bg-gradient-to-br from-slate-50 to-gray-100 p-4">
             <div className="w-full max-w-md bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
 
                 {/* Header */}
